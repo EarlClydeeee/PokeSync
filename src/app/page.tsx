@@ -1,40 +1,90 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
-  fetchPokemonBatch,
+  fetchPokemonList,
+  fetchPokemonDetails,
+  type PokemonListItem,
 } from "@/src/module/services/pokeapi";
 import { NextButton, PreviousButton } from "@/src/shared/components/Button";
 import { getPokemonImageUrl, formatPokemonId } from "@/src/shared/utils/pokemon";
+import { filterPokemon } from "@/src/shared/utils/filterPokemon";
+import { sortPokemon } from "@/src/shared/utils/sortPokemon";
 
 const LIMIT = 10;
 
 export default function Home() {
+  const [allList, setAllList] = useState<PokemonListItem[]>([]);
   const [pokemon, setPokemon] = useState<any[]>([]);
   const [offset, setOffset] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [loading, setLoading] = useState(false);
-
-  async function loadPage(newOffset: number) {
-    setLoading(true);
-    const result = await fetchPokemonBatch(newOffset, LIMIT);
-    setPokemon(result.pokemon);
-    setOffset(newOffset);
-    setHasMore(result.hasMore);
-    setLoading(false);
-  }
+  const [listLoading, setListLoading] = useState(true);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<"id" | "name">("id");
 
   useEffect(() => {
-    loadPage(0);
+    fetchPokemonList()
+      .then(setAllList)
+      .finally(() => setListLoading(false));
   }, []);
+
+  useEffect(() => {
+    setOffset(0);
+  }, [search, sortBy]);
+
+  const filteredSorted = useMemo(() => {
+    const filtered = filterPokemon(allList, search);
+    return sortPokemon([...filtered], sortBy);
+  }, [allList, search, sortBy]);
+
+  const pageSlice = useMemo(
+    () => filteredSorted.slice(offset, offset + LIMIT),
+    [filteredSorted, offset]
+  );
+
+  const totalPages = Math.max(1, Math.ceil(filteredSorted.length / LIMIT));
+  const currentPage = Math.floor(offset / LIMIT) + 1;
+  const hasPrev = offset > 0;
+  const hasMore = offset + LIMIT < filteredSorted.length;
+  const loading = listLoading || detailsLoading;
+
+  useEffect(() => {
+    if (pageSlice.length === 0) {
+      setPokemon([]);
+      return;
+    }
+
+    setDetailsLoading(true);
+    fetchPokemonDetails(pageSlice)
+      .then(setPokemon)
+      .finally(() => setDetailsLoading(false));
+  }, [pageSlice]);
 
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Pokédex</h1>
 
+      <div className="mb-4 flex gap-2">
+        <input
+          type="text"
+          placeholder="Search Pokémon"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="p-2 border border-gray-300 rounded w-full"
+        />
+        <select
+          className="rounded-lg border px-4 py-2"
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as "id" | "name")}
+        >
+          <option value="id">Sort: ID</option>
+          <option value="name">Sort: Name</option>
+        </select>
+      </div>
+
       {loading ? (
         <p>Loading...</p>
-      ) : (
+      ) : pokemon.length > 0 ? (
         <ul className="space-y-2">
           {pokemon.map((p) => (
             <li key={p.id} className="flex items-center gap-4 border p-3 rounded-lg">
@@ -45,21 +95,28 @@ export default function Home() {
                 height={96}
               />
               <div>
-                <p>#{formatPokemonId(p.id)} {p.name}</p>
+                <p>
+                  #{formatPokemonId(p.id)} {p.name}
+                </p>
                 <p>{p.types.map((t: any) => t.type.name).join(", ")}</p>
               </div>
             </li>
           ))}
         </ul>
+      ) : (
+        <p>No Pokémon found matching your search</p>
       )}
 
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 flex items-center gap-4">
         <PreviousButton
-          onClick={() => loadPage(offset - LIMIT)}
-          disabled={offset === 0 || loading}
+          onClick={() => setOffset(offset - LIMIT)}
+          disabled={!hasPrev || loading}
         />
+        <span className="text-sm text-gray-600">
+          Page {currentPage} of {totalPages}
+        </span>
         <NextButton
-          onClick={() => loadPage(offset + LIMIT)}
+          onClick={() => setOffset(offset + LIMIT)}
           disabled={!hasMore || loading}
         />
       </div>
