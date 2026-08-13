@@ -1,4 +1,8 @@
+"use client";
+
 import { fetchPokemonBatch } from "@/src/module/services/pokeapi";
+import { NextButton } from "@/src/shared/components/Button";
+import { PreviousButton } from "@/src/shared/components/Button";
 
 export default async function Home() {
   const { pokemon, hasMore, nextOffset } = await fetchPokemonBatch();
@@ -13,6 +17,8 @@ export default async function Home() {
             #{p.id} {p.name} — {p.types.map((t: any) => t.type.name).join(", ")}
           </li>
         ))}
+        <NextButton onClick={() => {}} />
+        <PreviousButton onClick={() => {}} disabled={true} />
       </ul>
     </div>
   );
