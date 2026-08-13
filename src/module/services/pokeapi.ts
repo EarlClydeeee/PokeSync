@@ -1,35 +1,35 @@
 const BASE = "https://pokeapi.co/api/v2";
 
-export async function fetchAllPokemon(limit = 1000) {
-  let offset = 0;
-  let allPokemon: any[] = [];
-  let hasMore = true;
+export type PokemonListItem = {
+  name: string;
+  url: string;
+};
 
+export async function fetchPokemonList(): Promise<PokemonListItem[]> {
   try {
-    while (hasMore) {
-      const res = await fetch(`${BASE}/pokemon?limit=${limit}&offset=${offset}`);
-      if (!res.ok) throw new Error("Failed to fetch pokemon list");
+    const res = await fetch(`${BASE}/pokemon?limit=2000`);
+    if (!res.ok) throw new Error("Failed to fetch pokemon list");
 
-      const data = await res.json();
-
-      // Fetch details for this batch
-      const pokemonDetails = await Promise.all(
-        data.results.map((p: { url: string }) =>
-          fetch(p.url).then(async (r) => {
-            if (!r.ok) throw new Error(`Failed to fetch ${p.url}`);
-            return r.json();
-          })
-        )
-      );
-
-      allPokemon = [...allPokemon, ...pokemonDetails];
-      hasMore = data.next !== null;
-      offset += limit;
-    }
-
-    return allPokemon;
+    const data = await res.json();
+    return data.results;
   } catch (error) {
-    console.error("Error fetching all Pokemon:", error);
+    console.error("Error fetching Pokemon list:", error);
+    return [];
+  }
+}
+
+export async function fetchPokemonDetails(items: PokemonListItem[]) {
+  try {
+    return await Promise.all(
+      items.map((p) =>
+        fetch(p.url).then(async (r) => {
+          if (!r.ok) throw new Error(`Failed to fetch ${p.url}`);
+          return r.json();
+        })
+      )
+    );
+  } catch (error) {
+    console.error("Error fetching Pokemon details:", error);
     return [];
   }
 }
