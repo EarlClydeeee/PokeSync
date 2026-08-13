@@ -6,6 +6,7 @@ import {
 } from "@/src/module/services/pokeapi";
 import { NextButton, PreviousButton } from "@/src/shared/components/Button";
 import { getPokemonImageUrl, formatPokemonId } from "@/src/shared/utils/pokemon";
+import { filterPokemonByName, filterPokemonById, filterPokemon } from "@/src/shared/utils/filterPokemon";
 
 const LIMIT = 10;
 
@@ -14,7 +15,7 @@ export default function Home() {
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState(""); // Search bar state
+  const [search, setSearch] = useState("");
 
   async function loadPage(newOffset: number) {
     setLoading(true);
@@ -28,6 +29,10 @@ export default function Home() {
   useEffect(() => {
     loadPage(0);
   }, []);
+
+  useEffect(() => {
+    setPokemon(filterPokemon(pokemon, search));
+  }, [pokemon, search]);
 
   return (
     <div className="p-4">
@@ -46,6 +51,7 @@ export default function Home() {
       {loading ? (
         <p>Loading...</p>
       ) : (
+        pokemon.length > 0 ? (
         <ul className="space-y-2">
           {pokemon.map((p) => (
             <li key={p.id} className="flex items-center gap-4 border p-3 rounded-lg">
@@ -62,6 +68,9 @@ export default function Home() {
             </li>
           ))}
         </ul>
+        ) : (
+          <p>No Pokémon found matching your search</p>
+        )
       )}
 
       <div className="mt-4 flex gap-2">
