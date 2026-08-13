@@ -16,6 +16,7 @@ export default function Home() {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<"id" | "name">("id");
 
   async function loadPage(newOffset: number) {
     setLoading(true);
@@ -38,7 +39,7 @@ export default function Home() {
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Pokédex</h1>
 
-      <div className="mb-4">
+      <div className="mb-4 flex gap-2">
         <input
           type="text"
           placeholder="Search Pokémon"
@@ -46,6 +47,16 @@ export default function Home() {
           onChange={(e) => setSearch(e.target.value)}
           className="p-2 border border-gray-300 rounded w-full"
         />
+        {/* Sort button HTML only, no sort logic */}
+        <select
+          className="rounded-lg border px-4 py-2"
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as "id" | "name")}
+        >
+          <option value="id">Sort: ID</option>
+          <option value="name">Sort: Name</option>
+        </select>
+   
       </div>
 
       {loading ? (
