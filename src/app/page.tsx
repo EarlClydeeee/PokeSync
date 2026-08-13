@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import {
   fetchPokemonBatch,
-  getPokemonImageUrl,
-  formatPokemonId,
 } from "@/src/module/services/pokeapi";
 import { NextButton, PreviousButton } from "@/src/shared/components/Button";
+import { getPokemonImageUrl, formatPokemonId } from "@/src/shared/utils/pokemon";
 
 const LIMIT = 10;
 
