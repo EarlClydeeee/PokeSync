@@ -26,4 +26,3 @@ export async function fetchPokemonBatch(offset = 0, limit = 10) {
     return { pokemon: [], hasMore: false, nextOffset: offset };
   }
 }
-

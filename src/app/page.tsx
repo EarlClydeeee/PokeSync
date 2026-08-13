@@ -14,6 +14,7 @@ export default function Home() {
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState(""); // Search bar state
 
   async function loadPage(newOffset: number) {
     setLoading(true);
@@ -31,6 +32,16 @@ export default function Home() {
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Pokédex</h1>
+
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search Pokémon"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="p-2 border border-gray-300 rounded w-full"
+        />
+      </div>
 
       {loading ? (
         <p>Loading...</p>
