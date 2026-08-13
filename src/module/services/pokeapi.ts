@@ -1,28 +1,35 @@
 const BASE = "https://pokeapi.co/api/v2";
 
-export async function fetchPokemonBatch(offset = 0, limit = 10) {
+export async function fetchAllPokemon(limit = 1000) {
+  let offset = 0;
+  let allPokemon: any[] = [];
+  let hasMore = true;
+
   try {
-    const res = await fetch(`${BASE}/pokemon?limit=${limit}&offset=${offset}`);
-    if (!res.ok) throw new Error("Failed to fetch pokemon list");
+    while (hasMore) {
+      const res = await fetch(`${BASE}/pokemon?limit=${limit}&offset=${offset}`);
+      if (!res.ok) throw new Error("Failed to fetch pokemon list");
 
-    const data = await res.json();
+      const data = await res.json();
 
-    const pokemonDetails = await Promise.all(
-      data.results.map((p: { url: string }) =>
-        fetch(p.url).then(async (r) => {
-          if (!r.ok) throw new Error(`Failed to fetch ${p.url}`);
-          return r.json();
-        })
-      )
-    );
+      // Fetch details for this batch
+      const pokemonDetails = await Promise.all(
+        data.results.map((p: { url: string }) =>
+          fetch(p.url).then(async (r) => {
+            if (!r.ok) throw new Error(`Failed to fetch ${p.url}`);
+            return r.json();
+          })
+        )
+      );
 
-    return {
-      pokemon: pokemonDetails,
-      hasMore: data.next !== null,
-      nextOffset: offset + limit,
-    };
+      allPokemon = [...allPokemon, ...pokemonDetails];
+      hasMore = data.next !== null;
+      offset += limit;
+    }
+
+    return allPokemon;
   } catch (error) {
-    console.error("Error fetching Pokemon details:", error);
-    return { pokemon: [], hasMore: false, nextOffset: offset };
+    console.error("Error fetching all Pokemon:", error);
+    return [];
   }
 }
