@@ -1,25 +1,69 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-// Later:
-// import { AuthProvider } from "@/modules/auth/components/AuthProvider";
-// import { Header } from "@/shared/components/Header";
+"use client";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+import { useEffect, useState } from "react";
+import {
+  fetchPokemonBatch,
+  getPokemonImageUrl,
+  formatPokemonId,
+} from "@/src/module/services/pokeapi";
+import { NextButton, PreviousButton } from "@/src/shared/components/Button";
 
-export const metadata: Metadata = {
-  title: {
-    default: "PokeSync",
-    template: "%s | PokeSync",  // e.g. "Collection | PokeSync"
-  },
-  description: "Sync and manage your Pokémon collection across devices.",
-};
+const LIMIT = 10;
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function Home() {
+  const [pokemon, setPokemon] = useState<any[]>([]);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  async function loadPage(newOffset: number) {
+    setLoading(true);
+    const result = await fetchPokemonBatch(newOffset, LIMIT);
+    setPokemon(result.pokemon);
+    setOffset(newOffset);
+    setHasMore(result.hasMore);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    loadPage(0);
+  }, []);
+
   return (
-    <div className="flex-1 p-4">
-      <h1 className="text-2xl font-bold">Welcome to PokeSync</h1>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Pokédex</h1>
+
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <ul className="space-y-2">
+          {pokemon.map((p) => (
+            <li key={p.id} className="flex items-center gap-4 border p-3 rounded-lg">
+              <img
+                src={getPokemonImageUrl(p.id)}
+                alt={p.name}
+                width={96}
+                height={96}
+              />
+              <div>
+                <p>#{formatPokemonId(p.id)} {p.name}</p>
+                <p>{p.types.map((t: any) => t.type.name).join(", ")}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="mt-4 flex gap-2">
+        <PreviousButton
+          onClick={() => loadPage(offset - LIMIT)}
+          disabled={offset === 0 || loading}
+        />
+        <NextButton
+          onClick={() => loadPage(offset + LIMIT)}
+          disabled={!hasMore || loading}
+        />
+      </div>
     </div>
   );
 }
