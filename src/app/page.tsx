@@ -1,8 +1,11 @@
 "use client";
+
 import { useEffect, useState } from "react";
-
-import { fetchPokemonBatch } from "@/src/module/services/pokeapi";
-
+import {
+  fetchPokemonBatch,
+  getPokemonImageUrl,
+  formatPokemonId,
+} from "@/src/module/services/pokeapi";
 import { NextButton, PreviousButton } from "@/src/shared/components/Button";
 
 const LIMIT = 10;
@@ -34,22 +37,28 @@ export default function Home() {
         <p>Loading...</p>
       ) : (
         <ul className="space-y-2">
-
           {pokemon.map((p) => (
-            <li key={p.id}>
-              #{p.id} {p.name} — {p.types.map((t: any) => t.type.name).join(", ")}
+            <li key={p.id} className="flex items-center gap-4 border p-3 rounded-lg">
+              <img
+                src={getPokemonImageUrl(p.id)}
+                alt={p.name}
+                width={96}
+                height={96}
+              />
+              <div>
+                <p>#{formatPokemonId(p.id)} {p.name}</p>
+                <p>{p.types.map((t: any) => t.type.name).join(", ")}</p>
+              </div>
             </li>
           ))}
         </ul>
       )}
 
       <div className="mt-4 flex gap-2">
-
         <PreviousButton
           onClick={() => loadPage(offset - LIMIT)}
           disabled={offset === 0 || loading}
         />
-
         <NextButton
           onClick={() => loadPage(offset + LIMIT)}
           disabled={!hasMore || loading}
