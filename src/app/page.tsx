@@ -1,25 +1,60 @@
 "use client";
+import { useEffect, useState } from "react";
 
 import { fetchPokemonBatch } from "@/src/module/services/pokeapi";
-import { NextButton } from "@/src/shared/components/Button";
-import { PreviousButton } from "@/src/shared/components/Button";
 
-export default async function Home() {
-  const { pokemon, hasMore, nextOffset } = await fetchPokemonBatch();
+import { NextButton, PreviousButton } from "@/src/shared/components/Button";
+
+const LIMIT = 10;
+
+export default function Home() {
+  const [pokemon, setPokemon] = useState<any[]>([]);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  async function loadPage(newOffset: number) {
+    setLoading(true);
+    const result = await fetchPokemonBatch(newOffset, LIMIT);
+    setPokemon(result.pokemon);
+    setOffset(newOffset);
+    setHasMore(result.hasMore);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    loadPage(0);
+  }, []);
 
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Pokédex</h1>
-      <p>Loaded: {pokemon.length} | Has more: {String(hasMore)} | Next offset: {nextOffset}</p>
-      <ul className="mt-4 space-y-2">
-        {pokemon.map((p) => (
-          <li key={p.id}>
-            #{p.id} {p.name} — {p.types.map((t: any) => t.type.name).join(", ")}
-          </li>
-        ))}
-        <NextButton onClick={() => {}} />
-        <PreviousButton onClick={() => {}} disabled={true} />
-      </ul>
+
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <ul className="space-y-2">
+
+          {pokemon.map((p) => (
+            <li key={p.id}>
+              #{p.id} {p.name} — {p.types.map((t: any) => t.type.name).join(", ")}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="mt-4 flex gap-2">
+
+        <PreviousButton
+          onClick={() => loadPage(offset - LIMIT)}
+          disabled={offset === 0 || loading}
+        />
+
+        <NextButton
+          onClick={() => loadPage(offset + LIMIT)}
+          disabled={!hasMore || loading}
+        />
+      </div>
     </div>
   );
 }
