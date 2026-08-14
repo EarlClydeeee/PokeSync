@@ -169,6 +169,7 @@ export default function Home() {
         <PokemonCardModal
           pokemon={modalPokemon}
           onClose={() => setSelectedPokemonId(null)}
+          isLoading={modalLoading}
           onPrevious={() => setSelectedPokemonId(selectedPokemonId - 1)}
           onNext={() => setSelectedPokemonId(selectedPokemonId + 1)}
           hasPrevious={selectedPokemonId > 1}
