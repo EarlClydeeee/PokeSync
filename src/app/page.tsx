@@ -66,7 +66,12 @@ export default function Home() {
   const hasMore = offset + LIMIT < filteredSorted.length;
   const loading = listLoading || detailsLoading;
 
-  const MAX_POKEMON_ID = allList.length; 
+  const MAX_POKEMON_ID = useMemo(() => {
+    return allList.reduce((max, p) => {
+      const id = parseInt(p.url.match(/\/(\d+)\/?$/)?.[1] ?? "0", 10);
+      return Math.max(max, id);
+    }, 0);
+  }, [allList]);
   const [modalPokemon, setModalPokemon] = useState<any | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
 
