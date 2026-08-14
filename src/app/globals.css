@@ -1,26 +1,42 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f9f7f2;
+  --foreground: #333333;
+  --pokedex-header: #9b7d5a;
+  --pokedex-header-dark: #7a5c3d;
+  --pokedex-bg: #f9f7f2;
+  --pokedex-card: #ffffff;
+  --pokedex-text: #333333;
+  --radius-pokedex-card: 10px;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-pokedex-header: var(--pokedex-header);
+  --color-pokedex-header-dark: var(--pokedex-header-dark);
+  --color-pokedex-bg: var(--pokedex-bg);
+  --color-pokedex-card: var(--pokedex-card);
+  --color-pokedex-text: var(--pokedex-text);
+  --radius-pokedex-card: var(--radius-pokedex-card);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background: var(--pokedex-bg);
+  color: var(--pokedex-text);
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.pokedex-page-bg {
+  background-color: var(--pokedex-bg);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 40px,
+    rgba(155, 125, 90, 0.04) 40px,
+    rgba(155, 125, 90, 0.04) 41px
+  );
 }
