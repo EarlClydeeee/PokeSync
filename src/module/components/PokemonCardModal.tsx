@@ -19,6 +19,7 @@ const STAT_LABELS: Record<string, string> = {
   speed: "Speed",
 };
 
+
 export function PokemonCardModal({
   pokemon,
   onClose,
