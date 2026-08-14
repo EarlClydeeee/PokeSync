@@ -111,7 +111,7 @@ export default function Home() {
 
   return (
     <div className="p-4 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Pokédex</h1>
+      <h1 className="text-2xl font-bold mb-4">PokéSync</h1>
 
       <div className="mb-4 flex gap-2">
         <input

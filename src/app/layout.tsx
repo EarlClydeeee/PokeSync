@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 // ... fonts ...
 export const metadata: Metadata = {
-  title: "PokeSync Pokédex",
+  title: "PokeSync",
   description: "Browse Pokémon with search, sort, and detailed stats",
 };
 
