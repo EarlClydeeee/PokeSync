@@ -4,10 +4,10 @@ import { useEffect, useState, useMemo } from "react";
 import {
   fetchPokemonList,
   fetchPokemonDetails,
-  type PokemonListItem,
   fetchPokemonById,
+  fetchPokemonSpecies,
+  type PokemonListItem,
 } from "@/src/module/services/pokeapi";
-import { NextButton, PreviousButton } from "@/src/shared/components/Button";
 import { getPokemonImageUrl, formatPokemonId } from "@/src/shared/utils/pokemon";
 import { filterPokemon } from "@/src/shared/utils/filterPokemon";
 import { sortPokemon } from "@/src/shared/utils/sortPokemon";
@@ -15,15 +15,20 @@ import { PokemonCardModal } from "@/src/module/components/PokemonCardModal";
 
 const LIMIT = 10;
 
+type PokemonDetail = Awaited<ReturnType<typeof fetchPokemonById>>;
+
 export default function Home() {
   const [allList, setAllList] = useState<PokemonListItem[]>([]);
-  const [pokemon, setPokemon] = useState<any[]>([]);
+  const [pokemon, setPokemon] = useState<NonNullable<PokemonDetail>[]>([]);
   const [selectedPokemonId, setSelectedPokemonId] = useState<number | null>(null);
-  const [offset, setOffset] = useState(0);
+  const [displayCount, setDisplayCount] = useState(LIMIT);
   const [listLoading, setListLoading] = useState(true);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"id" | "name">("id");
+  const [modalPokemon, setModalPokemon] = useState<NonNullable<PokemonDetail> | null>(null);
+  const [modalCategory, setModalCategory] = useState<string | null>(null);
+  const [modalLoading, setModalLoading] = useState(false);
 
   useEffect(() => {
     fetchPokemonList()
@@ -32,39 +37,21 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    setOffset(0);
+    setDisplayCount(LIMIT);
     setSelectedPokemonId(null);
   }, [search, sortBy]);
-
-  useEffect(() => {
-    setSelectedPokemonId(null);
-  }, [offset]);
-
-  const selectedPokemon = useMemo(
-    () => pokemon.find((p) => p.id === selectedPokemonId) ?? null,
-    [pokemon, selectedPokemonId]
-  );
-
-  const selectedIndex = useMemo(
-    () => pokemon.findIndex((p) => p.id === selectedPokemonId),
-    [pokemon, selectedPokemonId]
-  );
 
   const filteredSorted = useMemo(() => {
     const filtered = filterPokemon(allList, search);
     return sortPokemon([...filtered], sortBy);
   }, [allList, search, sortBy]);
 
-  const pageSlice = useMemo(
-    () => filteredSorted.slice(offset, offset + LIMIT),
-    [filteredSorted, offset]
+  const visibleSlice = useMemo(
+    () => filteredSorted.slice(0, displayCount),
+    [filteredSorted, displayCount]
   );
 
-  const totalPages = Math.max(1, Math.ceil(filteredSorted.length / LIMIT));
-  const currentPage = Math.floor(offset / LIMIT) + 1;
-  const hasPrev = offset > 0;
-  const hasMore = offset + LIMIT < filteredSorted.length;
-  const loading = listLoading || detailsLoading;
+  const hasMore = displayCount < filteredSorted.length;
 
   const MAX_POKEMON_ID = useMemo(() => {
     return allList.reduce((max, p) => {
@@ -72,102 +59,133 @@ export default function Home() {
       return Math.max(max, id);
     }, 0);
   }, [allList]);
-  const [modalPokemon, setModalPokemon] = useState<any | null>(null);
-  const [modalLoading, setModalLoading] = useState(false);
 
   useEffect(() => {
     if (selectedPokemonId == null) {
       setModalPokemon(null);
+      setModalCategory(null);
       return;
     }
-    // Use cached data from current page if available
+
     const cached = pokemon.find((p) => p.id === selectedPokemonId);
     if (cached) {
       setModalPokemon(cached);
+      setModalLoading(false);
+      fetchPokemonSpecies(selectedPokemonId).then((species) => {
+        const category =
+          species?.genera?.find((g: { language: { name: string } }) => g.language.name === "en")
+            ?.genus ?? null;
+        setModalCategory(category);
+      });
       return;
     }
-    // Otherwise fetch by ID
+
     setModalLoading(true);
-    fetchPokemonById(selectedPokemonId)
-      .then((data) => setModalPokemon(data))
+    Promise.all([
+      fetchPokemonById(selectedPokemonId),
+      fetchPokemonSpecies(selectedPokemonId),
+    ])
+      .then(([data, species]) => {
+        if (data) setModalPokemon(data);
+        const category =
+          species?.genera?.find((g: { language: { name: string } }) => g.language.name === "en")
+            ?.genus ?? null;
+        setModalCategory(category);
+      })
       .finally(() => setModalLoading(false));
   }, [selectedPokemonId, pokemon]);
 
   useEffect(() => {
-    if (pageSlice.length === 0) {
+    if (visibleSlice.length === 0) {
       setPokemon([]);
       return;
     }
 
     setDetailsLoading(true);
-    fetchPokemonDetails(pageSlice)
-      .then(setPokemon)
+    fetchPokemonDetails(visibleSlice)
+      .then((results) => setPokemon(results.filter(Boolean)))
       .finally(() => setDetailsLoading(false));
-  }, [pageSlice]);
+  }, [visibleSlice]);
+
+  const loading = listLoading || detailsLoading;
 
   return (
-    <div className="p-4">
+    <div className="p-4 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Pokédex</h1>
 
       <div className="mb-4 flex gap-2">
         <input
           type="text"
-          placeholder="Search Pokémon"
+          placeholder="Search by ID or name"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          data-testid="search-input"
           className="p-2 border border-gray-300 rounded w-full"
         />
         <select
           className="rounded-lg border px-4 py-2"
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as "id" | "name")}
+          data-testid="sort-select"
         >
           <option value="id">Sort: ID</option>
           <option value="name">Sort: Name</option>
         </select>
       </div>
 
-      {loading ? (
-        <p>Loading...</p>
+      {loading && pokemon.length === 0 ? (
+        <p data-testid="loading-indicator">Loading...</p>
       ) : pokemon.length > 0 ? (
-        <ul className="space-y-2">
+        <ul
+          data-testid="pokemon-list"
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+        >
           {pokemon.map((p) => (
             <li key={p.id}>
               <button
                 type="button"
                 onClick={() => setSelectedPokemonId(p.id)}
-                className="flex w-full items-center gap-4 border p-3 rounded-lg hover:bg-gray-50 text-left"
+                data-testid={`pokemon-card-${p.id}`}
+                className="flex flex-col items-center w-full border rounded-lg p-4 hover:bg-gray-50 hover:shadow-md transition-shadow text-left"
               >
-                <img src={getPokemonImageUrl(p.id)} alt={p.name} width={96} height={96} />
-                <div>
-                  <p>#{formatPokemonId(p.id)} {p.name}</p>
-                  <p>{p.types.map((t: any) => t.type.name).join(", ")}</p>
-                </div>
+                <img
+                  src={getPokemonImageUrl(p.id)}
+                  alt={p.name}
+                  width={96}
+                  height={96}
+                  className="object-contain"
+                />
+                <p className="font-semibold capitalize mt-2">
+                  #{formatPokemonId(p.id)} {p.name}
+                </p>
+                <p className="text-sm text-gray-600 capitalize">
+                  {p.types.map((t: { type: { name: string } }) => t.type.name).join(", ")}
+                </p>
               </button>
             </li>
           ))}
         </ul>
       ) : (
-        <p>No Pokémon found matching your search</p>
+        <p data-testid="empty-state">No Pokémon found matching your search</p>
       )}
 
-      <div className="mt-4 flex items-center gap-4">
-        <PreviousButton
-          onClick={() => setOffset(offset - LIMIT)}
-          disabled={!hasPrev || loading}
-        />
-        <span className="text-sm text-gray-600">
-          Page {currentPage} of {totalPages}
-        </span>
-        <NextButton
-          onClick={() => setOffset(offset + LIMIT)}
-          disabled={!hasMore || loading}
-        />
-      </div>
+      {hasMore && !loading && (
+        <div className="mt-6 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setDisplayCount((c) => c + LIMIT)}
+            data-testid="load-more-button"
+            className="rounded-lg border px-6 py-2 hover:bg-gray-50"
+          >
+            Load More
+          </button>
+        </div>
+      )}
 
       {selectedPokemonId != null && (
         <PokemonCardModal
           pokemon={modalPokemon}
+          category={modalCategory}
           onClose={() => setSelectedPokemonId(null)}
           isLoading={modalLoading}
           onPrevious={() => setSelectedPokemonId(selectedPokemonId - 1)}
