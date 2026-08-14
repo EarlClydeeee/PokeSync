@@ -33,8 +33,23 @@ export function getPokemonTypesDisplay(pokemon: Pokemon): string {
   return pokemon.types.map((t) => t.type.name).join(", ");
 }
 
+export function getWeaknessesForType(type: string): string[] {
+  return TYPE_WEAKNESS[type as keyof typeof TYPE_WEAKNESS] ?? [];
+}
+
+export function getPokemonWeaknesses(pokemon: Pokemon): string[] {
+  const weaknesses = getPokemonTypes(pokemon).flatMap(getWeaknessesForType);
+  return [...new Set(weaknesses)];
+}
+
 export function getWeaknessMessage(type: string): string {
-  const weaknesses = TYPE_WEAKNESS[type as keyof typeof TYPE_WEAKNESS];
-  if (!weaknesses) return `${type} type not found`;
-  return `is weak to ${weaknesses.join(", ")}`;
+  const weaknesses = getWeaknessesForType(type);
+  if (weaknesses.length === 0) return `${type} type not found`;
+  return `${weaknesses.join(", ")}`;
+}
+
+export function getPokemonWeaknessMessage(pokemon: Pokemon): string {
+  const weaknesses = getPokemonWeaknesses(pokemon);
+  if (weaknesses.length === 0) return "No weaknesses found";
+  return `${weaknesses.join(", ")}`;
 }
