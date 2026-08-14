@@ -87,19 +87,18 @@ export default function Home() {
       ) : pokemon.length > 0 ? (
         <ul className="space-y-2">
           {pokemon.map((p) => (
-            <li key={p.id} className="flex items-center gap-4 border p-3 rounded-lg">
-              <img
-                src={getPokemonImageUrl(p.id)}
-                alt={p.name}
-                width={96}
-                height={96}
-              />
-              <div>
-                <p>
-                  #{formatPokemonId(p.id)} {p.name}
-                </p>
-                <p>{p.types.map((t: any) => t.type.name).join(", ")}</p>
-              </div>
+            <li key={p.id}>
+              <button
+                type="button"
+                onClick={() => setSelectedPokemon(p)}
+                className="flex w-full items-center gap-4 border p-3 rounded-lg hover:bg-gray-50 text-left"
+              >
+                <img src={getPokemonImageUrl(p.id)} alt={p.name} width={96} height={96} />
+                <div>
+                  <p>#{formatPokemonId(p.id)} {p.name}</p>
+                  <p>{p.types.map((t: any) => t.type.name).join(", ")}</p>
+                </div>
+              </button>
             </li>
           ))}
         </ul>
