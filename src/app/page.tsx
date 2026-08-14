@@ -10,12 +10,14 @@ import { NextButton, PreviousButton } from "@/src/shared/components/Button";
 import { getPokemonImageUrl, formatPokemonId } from "@/src/shared/utils/pokemon";
 import { filterPokemon } from "@/src/shared/utils/filterPokemon";
 import { sortPokemon } from "@/src/shared/utils/sortPokemon";
+import { PokemonCardModal } from "@/src/module/components/PokemonCardModal";
 
 const LIMIT = 10;
 
 export default function Home() {
   const [allList, setAllList] = useState<PokemonListItem[]>([]);
   const [pokemon, setPokemon] = useState<any[]>([]);
+  const [selectedPokemonId, setSelectedPokemonId] = useState<number | null>(null);
   const [offset, setOffset] = useState(0);
   const [listLoading, setListLoading] = useState(true);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -30,7 +32,17 @@ export default function Home() {
 
   useEffect(() => {
     setOffset(0);
+    setSelectedPokemonId(null);
   }, [search, sortBy]);
+
+  useEffect(() => {
+    setSelectedPokemonId(null);
+  }, [offset]);
+
+  const selectedPokemon = useMemo(
+    () => pokemon.find((p) => p.id === selectedPokemonId) ?? null,
+    [pokemon, selectedPokemonId]
+  );
 
   const filteredSorted = useMemo(() => {
     const filtered = filterPokemon(allList, search);
@@ -87,19 +99,18 @@ export default function Home() {
       ) : pokemon.length > 0 ? (
         <ul className="space-y-2">
           {pokemon.map((p) => (
-            <li key={p.id} className="flex items-center gap-4 border p-3 rounded-lg">
-              <img
-                src={getPokemonImageUrl(p.id)}
-                alt={p.name}
-                width={96}
-                height={96}
-              />
-              <div>
-                <p>
-                  #{formatPokemonId(p.id)} {p.name}
-                </p>
-                <p>{p.types.map((t: any) => t.type.name).join(", ")}</p>
-              </div>
+            <li key={p.id}>
+              <button
+                type="button"
+                onClick={() => setSelectedPokemonId(p.id)}
+                className="flex w-full items-center gap-4 border p-3 rounded-lg hover:bg-gray-50 text-left"
+              >
+                <img src={getPokemonImageUrl(p.id)} alt={p.name} width={96} height={96} />
+                <div>
+                  <p>#{formatPokemonId(p.id)} {p.name}</p>
+                  <p>{p.types.map((t: any) => t.type.name).join(", ")}</p>
+                </div>
+              </button>
             </li>
           ))}
         </ul>
@@ -120,6 +131,13 @@ export default function Home() {
           disabled={!hasMore || loading}
         />
       </div>
+
+      {selectedPokemon && (
+        <PokemonCardModal
+          pokemon={selectedPokemon}
+          onClose={() => setSelectedPokemonId(null)}
+        />
+      )}
     </div>
   );
 }
