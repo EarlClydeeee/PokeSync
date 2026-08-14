@@ -33,3 +33,14 @@ export async function fetchPokemonDetails(items: PokemonListItem[]) {
     return [];
   }
 }
+
+export async function fetchPokemonById(id: number) {
+  try {
+    const res = await fetch(`${BASE}/pokemon/${id}`);
+    if (!res.ok) throw new Error(`Failed to fetch pokemon ${id}`);
+    return res.json();
+  } catch (error) {
+    console.error(`Error fetching Pokemon ${id}:`, error);
+    return null;
+  }
+}
