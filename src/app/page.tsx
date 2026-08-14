@@ -44,10 +44,6 @@ export default function Home() {
     [pokemon, selectedPokemonId]
   );
 
-  const selectedIndex = selectedPokemon
-    ? pokemon.findIndex((p) => p.id === selectedPokemon.id)
-    : -1;
-
   const filteredSorted = useMemo(() => {
     const filtered = filterPokemon(allList, search);
     return sortPokemon([...filtered], sortBy);
