@@ -136,6 +136,18 @@ export default function Home() {
         <PokemonCardModal
           pokemon={selectedPokemon}
           onClose={() => setSelectedPokemonId(null)}
+          onPrevious={() => {
+            if (selectedIndex > 0) {
+              setSelectedPokemonId(pokemon[selectedIndex - 1].id);
+            }
+          }}
+          onNext={() => {
+            if (selectedIndex < pokemon.length - 1) {
+              setSelectedPokemonId(pokemon[selectedIndex + 1].id);
+            }
+          }}
+          hasPrevious={selectedIndex > 0}
+          hasNext={selectedIndex >= 0 && selectedIndex < pokemon.length - 1}
         />
       )}
     </div>
