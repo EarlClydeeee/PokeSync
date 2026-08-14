@@ -44,10 +44,6 @@ export default function Home() {
     [pokemon, selectedPokemonId]
   );
 
-  const selectedIndex = selectedPokemon
-    ? pokemon.findIndex((p) => p.id === selectedPokemon.id)
-    : -1;
-
   const filteredSorted = useMemo(() => {
     const filtered = filterPokemon(allList, search);
     return sortPokemon([...filtered], sortBy);
@@ -140,18 +136,6 @@ export default function Home() {
         <PokemonCardModal
           pokemon={selectedPokemon}
           onClose={() => setSelectedPokemonId(null)}
-          onPrevious={() => {
-            if (selectedIndex > 0) {
-              setSelectedPokemonId(pokemon[selectedIndex - 1].id);
-            }
-          }}
-          onNext={() => {
-            if (selectedIndex < pokemon.length - 1) {
-              setSelectedPokemonId(pokemon[selectedIndex + 1].id);
-            }
-          }}
-          hasPrevious={selectedIndex > 0}
-          hasNext={selectedIndex >= 0 && selectedIndex < pokemon.length - 1}
         />
       )}
     </div>

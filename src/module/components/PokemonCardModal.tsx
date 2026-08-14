@@ -1,13 +1,8 @@
-import { NextButton, PreviousButton } from "@/src/shared/components/Button";
 import { formatPokemonId, getPokemonImageUrl } from "@/src/shared/utils/pokemon";
 
 type PokemonCardModalProps = {
   pokemon: any;
   onClose: () => void;
-  onPrevious: () => void;
-  onNext: () => void;
-  hasPrevious: boolean;
-  hasNext: boolean;
 };
 
 const STAT_LABELS: Record<string, string> = {
@@ -19,14 +14,7 @@ const STAT_LABELS: Record<string, string> = {
   speed: "Speed",
 };
 
-export function PokemonCardModal({
-  pokemon,
-  onClose,
-  onPrevious,
-  onNext,
-  hasPrevious,
-  hasNext,
-}: PokemonCardModalProps) {
+export function PokemonCardModal({ pokemon, onClose }: PokemonCardModalProps) {
   if (!pokemon) return null;
 
   const maxStat = Math.max(
@@ -104,11 +92,6 @@ export function PokemonCardModal({
               </div>
             ))}
           </div>
-        </div>
-
-        <div className="flex items-center justify-center gap-4 pt-4 border-t">
-          <PreviousButton onClick={onPrevious} disabled={!hasPrevious} />
-          <NextButton onClick={onNext} disabled={!hasNext} />
         </div>
       </div>
     </div>
