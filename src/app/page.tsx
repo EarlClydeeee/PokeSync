@@ -5,6 +5,7 @@ import {
   fetchPokemonList,
   fetchPokemonDetails,
   type PokemonListItem,
+  fetchPokemonById,
 } from "@/src/module/services/pokeapi";
 import { NextButton, PreviousButton } from "@/src/shared/components/Button";
 import { getPokemonImageUrl, formatPokemonId } from "@/src/shared/utils/pokemon";
@@ -44,6 +45,11 @@ export default function Home() {
     [pokemon, selectedPokemonId]
   );
 
+  const selectedIndex = useMemo(
+    () => pokemon.findIndex((p) => p.id === selectedPokemonId),
+    [pokemon, selectedPokemonId]
+  );
+
   const filteredSorted = useMemo(() => {
     const filtered = filterPokemon(allList, search);
     return sortPokemon([...filtered], sortBy);
@@ -59,6 +65,33 @@ export default function Home() {
   const hasPrev = offset > 0;
   const hasMore = offset + LIMIT < filteredSorted.length;
   const loading = listLoading || detailsLoading;
+
+  const MAX_POKEMON_ID = useMemo(() => {
+    return allList.reduce((max, p) => {
+      const id = parseInt(p.url.match(/\/(\d+)\/?$/)?.[1] ?? "0", 10);
+      return Math.max(max, id);
+    }, 0);
+  }, [allList]);
+  const [modalPokemon, setModalPokemon] = useState<any | null>(null);
+  const [modalLoading, setModalLoading] = useState(false);
+
+  useEffect(() => {
+    if (selectedPokemonId == null) {
+      setModalPokemon(null);
+      return;
+    }
+    // Use cached data from current page if available
+    const cached = pokemon.find((p) => p.id === selectedPokemonId);
+    if (cached) {
+      setModalPokemon(cached);
+      return;
+    }
+    // Otherwise fetch by ID
+    setModalLoading(true);
+    fetchPokemonById(selectedPokemonId)
+      .then((data) => setModalPokemon(data))
+      .finally(() => setModalLoading(false));
+  }, [selectedPokemonId, pokemon]);
 
   useEffect(() => {
     if (pageSlice.length === 0) {
@@ -132,22 +165,15 @@ export default function Home() {
         />
       </div>
 
-      {selectedPokemon && (
+      {selectedPokemonId != null && (
         <PokemonCardModal
-          pokemon={selectedPokemon}
+          pokemon={modalPokemon}
           onClose={() => setSelectedPokemonId(null)}
-          onPrevious={() => {
-            if (selectedIndex > 0) {
-              setSelectedPokemonId(pokemon[selectedIndex - 1].id);
-            }
-          }}
-          onNext={() => {
-            if (selectedIndex < pokemon.length - 1) {
-              setSelectedPokemonId(pokemon[selectedIndex + 1].id);
-            }
-          }}
-          hasPrevious={selectedIndex > 0}
-          hasNext={selectedIndex >= 0 && selectedIndex < pokemon.length - 1}
+          isLoading={modalLoading}
+          onPrevious={() => setSelectedPokemonId(selectedPokemonId - 1)}
+          onNext={() => setSelectedPokemonId(selectedPokemonId + 1)}
+          hasPrevious={selectedPokemonId > 1}
+          hasNext={selectedPokemonId < MAX_POKEMON_ID}
         />
       )}
     </div>

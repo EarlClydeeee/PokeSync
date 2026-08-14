@@ -8,6 +8,7 @@ type PokemonCardModalProps = {
   onNext: () => void;
   hasPrevious: boolean;
   hasNext: boolean;
+  isLoading: boolean;
 };
 
 const STAT_LABELS: Record<string, string> = {
@@ -27,11 +28,13 @@ export function PokemonCardModal({
   onNext,
   hasPrevious,
   hasNext,
+  isLoading,
 }: PokemonCardModalProps) {
-  if (!pokemon) return null;
-
+  if (!pokemon || !pokemon.stats) {
+    return null;
+  }
   const maxStat = Math.max(
-    ...pokemon.stats.map((s: any) => s.base_stat),
+    ...(pokemon.stats?.map((s: any) => s.base_stat) ?? [1]),
     1
   );
 
