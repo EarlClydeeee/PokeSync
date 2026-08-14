@@ -1,5 +1,9 @@
 import { NextButton, PreviousButton } from "@/src/shared/components/Button";
 import { formatPokemonId, getPokemonImageUrl } from "@/src/shared/utils/pokemon";
+import {
+  getPokemonTypesDisplay,
+  getPokemonWeaknessMessage,
+} from "@/src/shared/utils/weakness";
 
 type PokemonCardModalProps = {
   pokemon: any;
@@ -70,7 +74,11 @@ export function PokemonCardModal({
         <div className="space-y-2 mb-4">
           <p>
             <span className="font-medium">Types:</span>{" "}
-            {pokemon.types.map((t: any) => t.type.name).join(", ")}
+            {getPokemonTypesDisplay(pokemon)}
+          </p>
+          <p>
+            <span className="font-medium">Weakness:</span>{" "}
+            {getPokemonWeaknessMessage(pokemon)}
           </p>
           <p>
             <span className="font-medium">Height:</span>{" "}

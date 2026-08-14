@@ -14,7 +14,7 @@ export async function fetchPokemonList(): Promise<PokemonListItem[]> {
     return data.results;
   } catch (error) {
     console.error("Error fetching Pokemon list:", error);
-    return [];
+    return []; 
   }
 }
 
