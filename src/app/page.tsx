@@ -10,12 +10,14 @@ import { NextButton, PreviousButton } from "@/src/shared/components/Button";
 import { getPokemonImageUrl, formatPokemonId } from "@/src/shared/utils/pokemon";
 import { filterPokemon } from "@/src/shared/utils/filterPokemon";
 import { sortPokemon } from "@/src/shared/utils/sortPokemon";
+import { PokemonCardModal } from "@/src/module/components/PokemonCardModal";
 
 const LIMIT = 10;
 
 export default function Home() {
   const [allList, setAllList] = useState<PokemonListItem[]>([]);
   const [pokemon, setPokemon] = useState<any[]>([]);
+  const [selectedPokemon, setSelectedPokemon] = useState<any | null>(null);
   const [offset, setOffset] = useState(0);
   const [listLoading, setListLoading] = useState(true);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -119,6 +121,25 @@ export default function Home() {
           disabled={!hasMore || loading}
         />
       </div>
+
+      {selectedPokemon && (
+        <PokemonCardModal
+          pokemon={selectedPokemon}
+          onClose={() => setSelectedPokemon(null)}
+          onPrevious={() => {
+            const index = pokemon.findIndex((p) => p.id === selectedPokemon.id);
+            if (index > 0) setSelectedPokemon(pokemon[index - 1]);
+          }}
+          onNext={() => {
+            const index = pokemon.findIndex((p) => p.id === selectedPokemon.id);
+            if (index < pokemon.length - 1) setSelectedPokemon(pokemon[index + 1]);
+          }}
+          hasPrevious={pokemon.findIndex((p) => p.id === selectedPokemon.id) > 0}
+          hasNext={
+            pokemon.findIndex((p) => p.id === selectedPokemon.id) < pokemon.length - 1
+          }
+        />
+      )}
     </div>
   );
 }
