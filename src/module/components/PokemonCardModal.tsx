@@ -42,7 +42,7 @@ export function PokemonCardModal({
       data-testid="pokemon-modal"
     >
       <div
-        className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto"
+        className="bg-pokedex-card rounded-[var(--radius-pokedex-card)] p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto border border-pokedex-header/20 shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -119,16 +119,16 @@ export function PokemonCardModal({
             </div>
 
             <div className="mb-4">
-              <h3 className="font-semibold mb-2">Stats</h3>
+              <h3 className="font-semibold mb-2 text-pokedex-header-dark">Stats</h3>
               <div className="space-y-2" data-testid="modal-stats">
                 {pokemon.stats.map((s: any) => (
                   <div key={s.stat.name} className="flex items-center gap-3">
                     <span className="w-20 text-sm">
                       {STAT_LABELS[s.stat.name] ?? s.stat.name}
                     </span>
-                    <div className="flex-1 bg-gray-200 rounded-full h-2">
+                    <div className="flex-1 bg-pokedex-header/15 rounded-full h-2">
                       <div
-                        className="bg-blue-500 h-2 rounded-full"
+                        className="bg-pokedex-header h-2 rounded-full"
                         style={{ width: `${(s.base_stat / Math.max(...pokemon.stats.map((st: any) => st.base_stat), 1)) * 100}%` }}
                       />
                     </div>
@@ -140,7 +140,7 @@ export function PokemonCardModal({
           </>
         )}
 
-        <div className="flex items-center justify-center gap-4 pt-4 border-t">
+        <div className="flex items-center justify-center gap-4 pt-4 border-t border-pokedex-header/15">
           <PreviousButton
             onClick={onPrevious}
             disabled={!hasPrevious}
