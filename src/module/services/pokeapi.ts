@@ -44,3 +44,14 @@ export async function fetchPokemonById(id: number) {
     return null;
   }
 }
+
+export async function fetchPokemonSpecies(id: number) {
+  try {
+    const res = await fetch(`${BASE}/pokemon-species/${id}`);
+    if (!res.ok) throw new Error(`Failed to fetch species ${id}`);
+    return res.json();
+  } catch (error) {
+    console.error(`Error fetching Pokemon species ${id}:`, error);
+    return null;
+  }
+}
