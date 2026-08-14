@@ -8,10 +8,12 @@ import {
   fetchPokemonSpecies,
   type PokemonListItem,
 } from "@/src/module/services/pokeapi";
-import { getPokemonImageUrl, formatPokemonId } from "@/src/shared/utils/pokemon";
 import { filterPokemon } from "@/src/shared/utils/filterPokemon";
 import { sortPokemon } from "@/src/shared/utils/sortPokemon";
 import { PokemonCardModal } from "@/src/module/components/PokemonCardModal";
+import { PokedexHeader } from "@/src/module/components/PokedexHeader";
+import { PokedexToolbar } from "@/src/module/components/PokedexToolbar";
+import { PokemonGridCard } from "@/src/module/components/PokemonGridCard";
 
 const LIMIT = 10;
 
@@ -110,77 +112,54 @@ export default function Home() {
   const loading = listLoading || detailsLoading;
 
   return (
-    <div className="p-4 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">PokéSync</h1>
+    <div className="min-h-full flex flex-col">
+      <PokedexHeader />
 
-      <div className="mb-4 flex gap-2">
-        <input
-          type="text"
-          placeholder="Search by ID or name"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          data-testid="search-input"
-          className="p-2 border border-gray-300 rounded w-full"
+      <div className="p-4 max-w-7xl mx-auto w-full flex-1">
+        <PokedexToolbar
+          search={search}
+          onSearchChange={setSearch}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
         />
-        <select
-          className="rounded-lg border px-4 py-2"
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as "id" | "name")}
-          data-testid="sort-select"
-        >
-          <option value="id">Sort: ID</option>
-          <option value="name">Sort: Name</option>
-        </select>
-      </div>
 
-      {loading && pokemon.length === 0 ? (
-        <p data-testid="loading-indicator">Loading...</p>
-      ) : pokemon.length > 0 ? (
-        <ul
-          data-testid="pokemon-list"
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
-        >
-          {pokemon.map((p) => (
-            <li key={p.id}>
-              <button
-                type="button"
-                onClick={() => setSelectedPokemonId(p.id)}
-                data-testid={`pokemon-card-${p.id}`}
-                className="flex flex-col items-center w-full border rounded-lg p-4 hover:bg-gray-50 hover:shadow-md transition-shadow text-left"
-              >
-                <img
-                  src={getPokemonImageUrl(p.id)}
-                  alt={p.name}
-                  width={96}
-                  height={96}
-                  className="object-contain"
-                />
-                <p className="font-semibold capitalize mt-2">
-                  #{formatPokemonId(p.id)} {p.name}
-                </p>
-                <p className="text-sm text-gray-600 capitalize">
-                  {p.types.map((t: { type: { name: string } }) => t.type.name).join(", ")}
-                </p>
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p data-testid="empty-state">No Pokémon found matching your search</p>
-      )}
-
-      {hasMore && !loading && (
-        <div className="mt-6 flex justify-center">
-          <button
-            type="button"
-            onClick={() => setDisplayCount((c) => c + LIMIT)}
-            data-testid="load-more-button"
-            className="rounded-lg border px-6 py-2 hover:bg-gray-50"
+        {loading && pokemon.length === 0 ? (
+          <p data-testid="loading-indicator">Loading...</p>
+        ) : pokemon.length > 0 ? (
+          <ul
+            data-testid="pokemon-list"
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-9 gap-3"
           >
-            Load More
-          </button>
-        </div>
-      )}
+            {pokemon.map((p) => (
+              <li key={p.id}>
+                <PokemonGridCard
+                  id={p.id}
+                  name={p.name}
+                  types={p.types
+                    .map((t: { type: { name: string } }) => t.type.name)
+                    .join(", ")}
+                  onSelect={() => setSelectedPokemonId(p.id)}
+                />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p data-testid="empty-state">No Pokémon found matching your search</p>
+        )}
+
+        {hasMore && !loading && (
+          <div className="mt-6 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setDisplayCount((c) => c + LIMIT)}
+              data-testid="load-more-button"
+              className="rounded-[var(--radius-pokedex-card)] border border-pokedex-header/30 bg-pokedex-card px-6 py-2 hover:shadow-md transition-shadow"
+            >
+              Load More
+            </button>
+          </div>
+        )}
+      </div>
 
       {selectedPokemonId != null && (
         <PokemonCardModal
