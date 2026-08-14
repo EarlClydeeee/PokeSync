@@ -27,6 +27,8 @@ export function PokemonCardModal({
   hasPrevious,
   hasNext,
 }: PokemonCardModalProps) {
+  if (!pokemon) return null;
+
   const maxStat = Math.max(
     ...pokemon.stats.map((s: any) => s.base_stat),
     1

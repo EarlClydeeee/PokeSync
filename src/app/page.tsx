@@ -17,7 +17,7 @@ const LIMIT = 10;
 export default function Home() {
   const [allList, setAllList] = useState<PokemonListItem[]>([]);
   const [pokemon, setPokemon] = useState<any[]>([]);
-  const [selectedPokemon, setSelectedPokemon] = useState<any | null>(null);
+  const [selectedPokemonId, setSelectedPokemonId] = useState<number | null>(null);
   const [offset, setOffset] = useState(0);
   const [listLoading, setListLoading] = useState(true);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -32,7 +32,21 @@ export default function Home() {
 
   useEffect(() => {
     setOffset(0);
+    setSelectedPokemonId(null);
   }, [search, sortBy]);
+
+  useEffect(() => {
+    setSelectedPokemonId(null);
+  }, [offset]);
+
+  const selectedPokemon = useMemo(
+    () => pokemon.find((p) => p.id === selectedPokemonId) ?? null,
+    [pokemon, selectedPokemonId]
+  );
+
+  const selectedIndex = selectedPokemon
+    ? pokemon.findIndex((p) => p.id === selectedPokemon.id)
+    : -1;
 
   const filteredSorted = useMemo(() => {
     const filtered = filterPokemon(allList, search);
@@ -92,7 +106,7 @@ export default function Home() {
             <li key={p.id}>
               <button
                 type="button"
-                onClick={() => setSelectedPokemon(p)}
+                onClick={() => setSelectedPokemonId(p.id)}
                 className="flex w-full items-center gap-4 border p-3 rounded-lg hover:bg-gray-50 text-left"
               >
                 <img src={getPokemonImageUrl(p.id)} alt={p.name} width={96} height={96} />
@@ -125,19 +139,19 @@ export default function Home() {
       {selectedPokemon && (
         <PokemonCardModal
           pokemon={selectedPokemon}
-          onClose={() => setSelectedPokemon(null)}
+          onClose={() => setSelectedPokemonId(null)}
           onPrevious={() => {
-            const index = pokemon.findIndex((p) => p.id === selectedPokemon.id);
-            if (index > 0) setSelectedPokemon(pokemon[index - 1]);
+            if (selectedIndex > 0) {
+              setSelectedPokemonId(pokemon[selectedIndex - 1].id);
+            }
           }}
           onNext={() => {
-            const index = pokemon.findIndex((p) => p.id === selectedPokemon.id);
-            if (index < pokemon.length - 1) setSelectedPokemon(pokemon[index + 1]);
+            if (selectedIndex < pokemon.length - 1) {
+              setSelectedPokemonId(pokemon[selectedIndex + 1].id);
+            }
           }}
-          hasPrevious={pokemon.findIndex((p) => p.id === selectedPokemon.id) > 0}
-          hasNext={
-            pokemon.findIndex((p) => p.id === selectedPokemon.id) < pokemon.length - 1
-          }
+          hasPrevious={selectedIndex > 0}
+          hasNext={selectedIndex >= 0 && selectedIndex < pokemon.length - 1}
         />
       )}
     </div>
