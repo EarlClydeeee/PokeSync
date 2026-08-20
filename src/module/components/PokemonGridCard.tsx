@@ -15,15 +15,9 @@ export function PokemonGridCard({ id, name, types, onSelect }: PokemonGridCardPr
       data-testid={`pokemon-card-${id}`}
       className="flex flex-col w-full bg-pokedex-card rounded-[var(--radius-pokedex-card)] border border-pokedex-header/15 p-3 hover:shadow-md hover:border-pokedex-header/30 transition-shadow text-left min-h-[140px]"
     >
-      <div className="flex items-center gap-2 w-full mb-1">
-        <span
-          aria-hidden="true"
-          className="inline-block w-4 h-4 shrink-0 border-2 border-pokedex-header/50 rounded-sm"
-        />
-        <p className="font-semibold capitalize text-pokedex-text truncate">
-          #{formatPokemonId(id)} {name}
-        </p>
-      </div>
+      <p className="font-semibold capitalize text-pokedex-text truncate w-full mb-1">
+        #{formatPokemonId(id)} {name}
+      </p>
 
       <div className="flex flex-1 flex-col items-center justify-center">
         <img
